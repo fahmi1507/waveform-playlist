@@ -47,6 +47,8 @@ export function init(options = {}, ee = EventEmitter()) {
     isAutomaticScroll: false,
   };
 
+  // test
+
   const config = _defaults({}, options, defaults);
   const zoomIndex = config.zoomLevels.indexOf(config.samplesPerPixel);
 
