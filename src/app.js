@@ -26,9 +26,9 @@ export function init(options = {}, ee = EventEmitter()) {
       },
     },
     colors: {
-      waveOutlineColor: "red",
-      timeColor: "red",
-      fadeColor: "red",
+      waveOutlineColor: "white",
+      timeColor: "gray",
+      fadeColor: "black",
     },
     seekStyle: "line",
     waveHeight: 128,
