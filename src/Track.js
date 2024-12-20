@@ -86,6 +86,40 @@ export default class {
     }
   }
 
+  cut(start, end) {
+    const trackStart = this.getStartTime();
+    const trackEnd = this.getEndTime();
+    const offset = this.cueIn - trackStart;
+
+    // Check if the cut range overlaps with the track
+    if (
+      (trackStart <= start && trackEnd >= start) ||
+      (trackStart <= end && trackEnd >= end)
+    ) {
+      // Calculate the actual cut points relative to the track's cues
+      const cutStart = Math.max(start - trackStart + offset, this.cueIn);
+      const cutEnd = Math.min(end - trackStart + offset, this.cueOut);
+
+      // If the cut starts after track start, keep the beginning portion
+      if (start > trackStart) {
+        // The end time of the first segment becomes the cut start
+        this.setCues(this.cueIn, cutStart);
+      }
+
+      // If the cut ends before track end, append the remaining portion
+      if (end < trackEnd) {
+        // The start time becomes the cut end
+        // Duration is adjusted to remaining time
+        this.setCues(cutEnd, this.cueOut);
+        this.setStartTime(end);
+      }
+
+      // Update the duration and end time
+      this.duration = this.cueOut - this.cueIn;
+      this.endTime = this.startTime + this.duration;
+    }
+  }
+
   setStartTime(start) {
     this.startTime = start;
     this.endTime = start + this.duration;

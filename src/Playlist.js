@@ -344,6 +344,20 @@ export default class {
       this.drawRequest();
     });
 
+    ee.on("cut", () => {
+      const track = this.getActiveTrack();
+      const timeSelection = this.getTimeSelection();
+
+      this.undoHistory.push(track.saveState());
+
+      track.cut(timeSelection.start, timeSelection.end);
+      track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
+
+      this.setTimeSelection(0, 0);
+      this.adjustDuration();
+      this.drawRequest();
+    });
+
     ee.on("undo", () => {
       const track = this.getActiveTrack();
 
