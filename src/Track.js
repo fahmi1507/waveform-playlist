@@ -795,4 +795,25 @@ export default class {
 
     return info;
   }
+
+  // fahmi
+  saveState() {
+    return {
+      cueIn: this.cueIn,
+      cueOut: this.cueOut,
+      startTime: this.startTime,
+      endTime: this.endTime,
+      duration: this.duration,
+    };
+  }
+
+  restoreState(state) {
+    if (!state) return;
+
+    this.cueIn = state.cueIn;
+    this.cueOut = state.cueOut;
+    this.startTime = state.startTime;
+    this.endTime = state.endTime;
+    this.duration = state.duration;
+  }
 }

@@ -40,6 +40,8 @@ export default class {
     this.durationFormat = "hh:mm:ss.uuu";
     this.isAutomaticScroll = false;
     this.resetDrawTimer = undefined;
+
+    this.undoHistory = []; // Stack to store states for undo
   }
 
   // TODO extract into a plugin
@@ -332,6 +334,8 @@ export default class {
       const track = this.getActiveTrack();
       const timeSelection = this.getTimeSelection();
 
+      this.undoHistory.push(track.saveState());
+
       track.trim(timeSelection.start, timeSelection.end);
       track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
 
@@ -344,12 +348,32 @@ export default class {
       const track = this.getActiveTrack();
       const timeSelection = this.getTimeSelection();
 
+      this.undoHistory.push(track.saveState());
+
       track.cut(timeSelection.start, timeSelection.end);
       track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
 
       this.setTimeSelection(0, 0);
       this.adjustDuration();
       this.drawRequest();
+    });
+
+    ee.on("undo", () => {
+      const track = this.getActiveTrack();
+
+      if (this.undoHistory.length > 0) {
+        const lastState = this.undoHistory.pop();
+
+        // Restore the state of the active track
+        track.restoreState(lastState);
+
+        // Recalculate peaks and redraw
+        track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
+        this.adjustDuration();
+        this.drawRequest();
+      } else {
+        console.log("No actions to undo.");
+      }
     });
 
 
