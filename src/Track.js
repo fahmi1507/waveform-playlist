@@ -100,17 +100,22 @@ export default class {
       const cutStart = Math.max(start - trackStart + offset, this.cueIn);
       const cutEnd = Math.min(end - trackStart + offset, this.cueOut);
 
-      // If the cut starts after track start, keep the beginning portion
-      if (start > trackStart) {
-        // The end time of the first segment becomes the cut start
-        this.setCues(this.cueIn, cutStart);
-      }
+      // Calculate the length of the section being removed
+      const cutLength = cutEnd - cutStart;
 
-      // If the cut ends before track end, append the remaining portion
-      if (end < trackEnd) {
-        // The start time becomes the cut end
-        // Duration is adjusted to remaining time
-        this.setCues(cutEnd, this.cueOut);
+      // If the cut starts after cueIn, keep the beginning portion
+      // and shift later portions back
+      if (cutStart > this.cueIn) {
+        const endCue = this.cueOut - cutLength;
+        this.setCues(this.cueIn, endCue);
+
+        // If the cut ends before track end, we need to shift the end portion back
+        if (end < trackEnd) {
+          this.setStartTime(this.startTime);
+        }
+      } else {
+        // If we're cutting from the beginning, just adjust the cueIn
+        this.setCues(this.cueIn + cutLength, this.cueOut);
         this.setStartTime(end);
       }
 
