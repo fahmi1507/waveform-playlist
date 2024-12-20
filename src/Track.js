@@ -86,6 +86,36 @@ export default class {
     }
   }
 
+  cut(start, end) {
+    const trackStart = this.getStartTime();
+    const trackEnd = this.getEndTime();
+    const offset = this.cueIn - trackStart;
+
+    if (
+      (trackStart <= start && trackEnd >= start) ||
+      (trackStart <= end && trackEnd >= end)
+    ) {
+      const newCueIn = start < trackStart ? start : trackStart;
+      const newCueOut = end > trackEnd ? end : trackEnd;
+
+      // If the selection overlaps at the beginning
+      if (start <= trackStart && end < trackEnd) {
+        this.setCues(newCueOut + offset, trackEnd + offset);
+        this.setStartTime(newCueOut);
+      }
+      // If the selection overlaps at the end
+      else if (start > trackStart && end >= trackEnd) {
+        this.setCues(trackStart + offset, newCueIn + offset);
+      }
+      // If the selection is fully inside the track
+      else if (start > trackStart && end < trackEnd) {
+        this.setCues(trackStart + offset, start + offset); // Keep the beginning
+        this.setEndTime(start); // Set the end of the track to the start of the cut range
+        // Create a new track object for the remaining portion (optional)
+      }
+    }
+  }
+
   setStartTime(start) {
     this.startTime = start;
     this.endTime = start + this.duration;
@@ -505,9 +535,8 @@ export default class {
       "div.controls",
       {
         attributes: {
-          style: `height: ${numChan * data.height}px; width: ${
-            data.controls.width
-          }px; position: absolute; left: 0; z-index: 10;`,
+          style: `height: ${numChan * data.height}px; width: ${data.controls.width
+            }px; position: absolute; left: 0; z-index: 10;`,
         },
       },
       controls
@@ -666,9 +695,8 @@ export default class {
         `div.channel.channel-${channelNum}`,
         {
           attributes: {
-            style: `height: ${data.height}px; width: ${width}px; top: ${
-              channelNum * data.height
-            }px; left: ${startX}px; position: absolute; margin: 0; padding: 0; z-index: 1;`,
+            style: `height: ${data.height}px; width: ${width}px; top: ${channelNum * data.height
+              }px; left: ${startX}px; position: absolute; margin: 0; padding: 0; z-index: 1;`,
           },
         },
         channelChildren
@@ -730,9 +758,8 @@ export default class {
       `div.channel-wrapper${audibleClass}${customClass}`,
       {
         attributes: {
-          style: `margin-left: ${channelMargin}px; height: ${
-            data.height * numChan
-          }px;`,
+          style: `margin-left: ${channelMargin}px; height: ${data.height * numChan
+            }px;`,
         },
       },
       channelChildren

@@ -340,6 +340,20 @@ export default class {
       this.drawRequest();
     });
 
+    ee.on("cut", () => {
+      const track = this.getActiveTrack();
+      const timeSelection = this.getTimeSelection();
+
+      track.cut(timeSelection.start, timeSelection.end);
+      track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
+
+      this.setTimeSelection(0, 0);
+      this.adjustDuration();
+      this.drawRequest();
+    });
+
+
+
     ee.on("zoomin", () => {
       const zoomIndex = Math.max(0, this.zoomIndex - 1);
       const zoom = this.zoomLevels[zoomIndex];
