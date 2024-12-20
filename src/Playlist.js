@@ -348,15 +348,19 @@ export default class {
       const track = this.getActiveTrack();
       const timeSelection = this.getTimeSelection();
 
+      // Save the state for undo functionality
       this.undoHistory.push(track.saveState());
 
+      // Apply the cut
       track.cut(timeSelection.start, timeSelection.end);
       track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
 
+      // Reset the time selection and update the UI
       this.setTimeSelection(0, 0);
       this.adjustDuration();
       this.drawRequest();
     });
+
 
     ee.on("undo", () => {
       const track = this.getActiveTrack();

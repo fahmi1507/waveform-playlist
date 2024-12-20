@@ -92,24 +92,27 @@ export default class {
     const offset = this.cueIn - trackStart;
 
     if (
-      (trackStart <= start && trackEnd >= start) ||
-      (trackStart <= end && trackEnd >= end)
+      (trackStart <= start && trackEnd >= start) || // Overlaps with the start
+      (trackStart <= end && trackEnd >= end)       // Overlaps with the end
     ) {
       const cueInBefore = trackStart;
-      const cueOutBefore = start;
-      const cueInAfter = end;
+      const cueOutBefore = Math.min(start, trackEnd);
+      const cueInAfter = Math.max(end, trackStart);
       const cueOutAfter = trackEnd;
 
+      // If there's a segment before the cut range, retain it
       if (start > trackStart) {
         this.setCues(cueInBefore + offset, cueOutBefore + offset);
-        this.setStartTime(trackStart);
+        this.setStartTime(trackStart); // Ensure start time is correct
       }
 
+      // If there's a segment after the cut range, retain it
       if (end < trackEnd) {
         this.setCues(cueInAfter + offset, cueOutAfter + offset);
       }
     }
   }
+
 
   setStartTime(start) {
     this.startTime = start;
