@@ -124,6 +124,30 @@ export default class {
     }
   }
 
+  combineSegments(segments) {
+    const context = this.ac; // AudioContext
+    const buffers = segments.map(({ cueIn, cueOut }) => {
+      const start = Math.floor(cueIn * this.sampleRate);
+      const end = Math.floor(cueOut * this.sampleRate);
+      return this.buffer.getChannelData(0).slice(start, end);
+    });
+
+    // Combine segments into one buffer
+    const totalLength = buffers.reduce((sum, segment) => sum + segment.length, 0);
+    const combinedBuffer = context.createBuffer(1, totalLength, this.sampleRate);
+
+    const output = combinedBuffer.getChannelData(0);
+    let offset = 0;
+
+    buffers.forEach((buffer) => {
+      output.set(buffer, offset);
+      offset += buffer.length;
+    });
+
+    return combinedBuffer;
+  }
+
+
 
 
   setStartTime(start) {
