@@ -92,26 +92,38 @@ export default class {
     const offset = this.cueIn - trackStart;
 
     if (
-      (trackStart <= start && trackEnd >= start) || // Overlaps with the start
-      (trackStart <= end && trackEnd >= end)       // Overlaps with the end
+      (trackStart <= start && trackEnd >= start) || // Selection starts within the track
+      (trackStart <= end && trackEnd >= end)       // Selection ends within the track
     ) {
-      const cueInBefore = trackStart;
-      const cueOutBefore = Math.min(start, trackEnd);
-      const cueInAfter = Math.max(end, trackStart);
-      const cueOutAfter = trackEnd;
+      // Retain the parts before and after the selected range
+      const firstPartCueIn = trackStart;
+      const firstPartCueOut = Math.min(start, trackEnd);
+      const secondPartCueIn = Math.max(end, trackStart);
+      const secondPartCueOut = trackEnd;
 
-      // If there's a segment before the cut range, retain it
-      if (start > trackStart) {
-        this.setCues(cueInBefore + offset, cueOutBefore + offset);
-        this.setStartTime(trackStart); // Ensure start time is correct
-      }
+      if (start > trackStart && end < trackEnd) {
+        // Case: Selection is in the middle of the track
+        this.setCues(firstPartCueIn + offset, firstPartCueOut + offset);
+        this.setStartTime(firstPartCueIn);
 
-      // If there's a segment after the cut range, retain it
-      if (end < trackEnd) {
-        this.setCues(cueInAfter + offset, cueOutAfter + offset);
+        // Combine the remaining second part by updating the buffer
+        this.buffer = this.combineSegments([
+          { cueIn: firstPartCueIn, cueOut: firstPartCueOut },
+          { cueIn: secondPartCueIn, cueOut: secondPartCueOut }
+        ]);
+        this.calculatePeaks(this.samplesPerPixel, this.sampleRate);
+      } else if (start > trackStart) {
+        // Case: Only the part before the selection remains
+        this.setCues(firstPartCueIn + offset, firstPartCueOut + offset);
+        this.setStartTime(firstPartCueIn);
+      } else if (end < trackEnd) {
+        // Case: Only the part after the selection remains
+        this.setCues(secondPartCueIn + offset, secondPartCueOut + offset);
+        this.setStartTime(secondPartCueIn);
       }
     }
   }
+
 
 
   setStartTime(start) {
