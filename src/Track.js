@@ -89,6 +89,7 @@ export default class {
   cut(start, end) {
     const trackStart = this.getStartTime();
     const trackEnd = this.getEndTime();
+    const originalTrackLength = trackEnd - trackStart;
     const offset = this.cueIn - trackStart;
 
     // Check if the cut range overlaps with the track
@@ -99,25 +100,18 @@ export default class {
       // Calculate the actual cut points relative to the track's cues
       const cutStart = Math.max(start - trackStart + offset, this.cueIn);
       const cutEnd = Math.min(end - trackStart + offset, this.cueOut);
-
-      // Calculate the length of the section being removed
       const cutLength = cutEnd - cutStart;
 
-      // If the cut starts after cueIn, keep the beginning portion
-      // and shift later portions back
-      if (cutStart > this.cueIn) {
-        const endCue = this.cueOut - cutLength;
-        this.setCues(this.cueIn, endCue);
+      // Keep track of the original end portion
+      const remainingEnd = this.cueOut - cutEnd;
 
-        // If the cut ends before track end, we need to shift the end portion back
-        if (end < trackEnd) {
-          this.setStartTime(this.startTime);
-        }
-      } else {
-        // If we're cutting from the beginning, just adjust the cueIn
-        this.setCues(this.cueIn + cutLength, this.cueOut);
-        this.setStartTime(end);
-      }
+      // If cutting in the middle, we need to:
+      // 1. Keep the beginning up to cutStart
+      // 2. Append the portion after cutEnd
+      this.setCues(this.cueIn, this.cueIn + (originalTrackLength - cutLength));
+
+      // Maintain the original start time
+      this.setStartTime(trackStart);
 
       // Update the duration and end time
       this.duration = this.cueOut - this.cueIn;
