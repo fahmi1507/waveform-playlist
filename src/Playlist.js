@@ -345,18 +345,21 @@ export default class {
     });
 
     ee.on("cut", () => {
-      const track = this.getActiveTrack();
-      const timeSelection = this.getTimeSelection();
+      const selection = this.getTimeSelection(); // Get the selected range
+      if (selection.start < selection.end) {
+        const activeTrack = this.getActiveTrack();
+        if (activeTrack) {
+          this.undoHistory.push(activeTrack.saveState()); // Save state for undo
 
-      this.undoHistory.push(track.saveState());
+          activeTrack.cut(selection.start, selection.end); // Perform the cut
+          activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate); // Recalculate peaks
 
-      track.cut(timeSelection.start, timeSelection.end);
-      track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
-
-      this.setTimeSelection(0, 0);
-      this.adjustDuration();
-      this.drawRequest();
+          this.adjustDuration(); // Adjust the playlist duration
+          this.drawRequest(); // Redraw the waveform
+        }
+      }
     });
+
 
     ee.on("undo", () => {
       const track = this.getActiveTrack();

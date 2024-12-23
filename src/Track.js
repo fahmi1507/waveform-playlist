@@ -90,30 +90,48 @@ export default class {
     const trackStart = this.getStartTime();
     const trackEnd = this.getEndTime();
 
-    // Only proceed if the cut range overlaps with the track
-    if (
-      (trackStart <= start && trackEnd >= start) ||
-      (trackStart <= end && trackEnd >= end)
-    ) {
-      // Calculate cut points relative to the track start
-      const relativeStart = start - trackStart;
-      const relativeEnd = end - trackStart;
-
-      // Calculate new cue points
-      const newCueIn = this.cueIn;
-      const newCueOut = this.cueOut - (relativeEnd - relativeStart);
-
-      this.setCues(newCueIn, newCueOut);
-
-      // If cut starts after track start, keep original start time
-      // Otherwise move start time to the end of cut
-      if (start > trackStart) {
-        this.setStartTime(trackStart);
-      } else {
-        this.setStartTime(end);
-      }
+    if (start < trackStart || end > trackEnd || start >= end) {
+      throw new Error("Invalid cut range");
     }
+
+    // Calculate the new duration
+    const cutDuration = end - start;
+    const newDuration = this.duration - cutDuration;
+
+    // Create a new buffer to hold the remaining audio
+    const audioContext = this.playout.audioContext; // Use the current audio context
+    const channels = this.buffer.numberOfChannels;
+    const sampleRate = this.buffer.sampleRate;
+
+    const newBuffer = audioContext.createBuffer(
+      channels,
+      Math.floor(newDuration * sampleRate),
+      sampleRate
+    );
+
+    for (let channel = 0; channel < channels; channel++) {
+      const originalData = this.buffer.getChannelData(channel);
+      const newData = newBuffer.getChannelData(channel);
+
+      // Copy data from 0 to start
+      const startSamples = Math.floor(start * sampleRate);
+      const endSamples = Math.floor(end * sampleRate);
+      newData.set(originalData.subarray(0, startSamples));
+
+      // Copy data from end to trackEnd
+      newData.set(
+        originalData.subarray(endSamples),
+        startSamples // Position after the first segment
+      );
+    }
+
+    // Update the buffer and properties
+    this.setBuffer(newBuffer);
+    this.setCues(trackStart, trackEnd - cutDuration);
+    this.duration = newDuration;
+    this.endTime = this.startTime + newDuration;
   }
+
 
   setStartTime(start) {
     this.startTime = start;
