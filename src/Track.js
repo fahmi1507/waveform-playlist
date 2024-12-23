@@ -93,21 +93,28 @@ export default class {
 
     const channels = this.buffer.numberOfChannels;
     const sampleRate = this.buffer.sampleRate;
-    const startSample = Math.floor(start * sampleRate);
-    const endSample = Math.floor(end * sampleRate);
+    const startSample = Math.round(start * sampleRate);
+    const endSample = Math.round(end * sampleRate);
     const totalSamples = this.buffer.length;
+
+    // Validate the range
+    if (startSample >= endSample || startSample < 0 || endSample > totalSamples) {
+      throw new Error("Invalid cut range");
+    }
 
     // Calculate the new buffer size and create a new buffer
     const newBufferLength = totalSamples - (endSample - startSample);
     const newBuffer = audioContext.createBuffer(channels, newBufferLength, sampleRate);
 
-    // Copy audio data from the original buffer to the new buffer
+    // Copy audio data
     for (let channel = 0; channel < channels; channel++) {
       const originalData = this.buffer.getChannelData(channel);
       const newData = newBuffer.getChannelData(channel);
 
-      // Copy data before and after the cut
+      // Copy data before the cut
       newData.set(originalData.subarray(0, startSample), 0);
+
+      // Copy data after the cut
       newData.set(originalData.subarray(endSample), startSample);
     }
 
@@ -115,12 +122,16 @@ export default class {
     this.setBuffer(newBuffer);
     this.playout = new Playout(audioContext, newBuffer, this.playout.masterGain);
 
-    // Update cues, duration, and peaks
-    this.setCues(this.cueIn, this.cueOut - (end - start));
-    this.duration -= (end - start);
+    // Update cues, duration, and end time
+    const cutDuration = (endSample - startSample) / sampleRate;
+    this.setCues(this.cueIn, this.cueOut - cutDuration);
+    this.duration -= cutDuration;
     this.endTime = this.startTime + this.duration;
-    // this.calculatePeaks(this.samplesPerPixel, sampleRate);
+
+    // Recalculate peaks
+    this.calculatePeaks(this.samplesPerPixel, sampleRate);
   }
+
 
 
 
