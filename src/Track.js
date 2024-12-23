@@ -99,7 +99,8 @@ export default class {
     const newDuration = this.duration - cutDuration;
 
     // Create a new buffer to hold the remaining audio
-    const audioContext = this.playout.audioContext; // Use the current audio context
+    const audioContext = this.playout.ac; // Use the current audio context
+    console.log(audioContext, 'audio context')
     const channels = this.buffer.numberOfChannels;
     const sampleRate = this.buffer.sampleRate;
 
