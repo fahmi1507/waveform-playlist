@@ -87,51 +87,42 @@ export default class {
   }
 
   cut(start, end) {
-    const trackStart = this.getStartTime();
-    const trackEnd = this.getEndTime();
+    const audioContext = this.playout.ac; // Access the AudioContext
+    if (!audioContext) throw new Error("AudioContext is not available.");
 
-    if (start < trackStart || end > trackEnd || start >= end) {
-      throw new Error("Invalid cut range");
-    }
+    const channels = this.buffer.numberOfChannels; // Number of audio channels (e.g., 1 for mono, 2 for stereo)
+    const sampleRate = this.buffer.sampleRate; // Sample rate of the audio
+    const startSample = Math.floor(start * sampleRate); // Convert start time to sample index
+    const endSample = Math.floor(end * sampleRate); // Convert end time to sample index
+    const totalSamples = this.buffer.length; // Total number of samples in the buffer
 
-    // Calculate the new duration
-    const cutDuration = end - start;
-    const newDuration = this.duration - cutDuration;
+    // Calculate the new buffer size (excluding the cut section)
+    const newBufferLength = totalSamples - (endSample - startSample);
 
-    // Create a new buffer to hold the remaining audio
-    const audioContext = this.playout.ac; // Use the current audio context
-    console.log(audioContext, 'audio context')
-    const channels = this.buffer.numberOfChannels;
-    const sampleRate = this.buffer.sampleRate;
+    // Create a new audio buffer
+    const newBuffer = audioContext.createBuffer(channels, newBufferLength, sampleRate);
 
-    const newBuffer = audioContext.createBuffer(
-      channels,
-      Math.floor(newDuration * sampleRate),
-      sampleRate
-    );
-
+    // Copy audio data from the original buffer to the new buffer
     for (let channel = 0; channel < channels; channel++) {
-      const originalData = this.buffer.getChannelData(channel);
-      const newData = newBuffer.getChannelData(channel);
+      const originalData = this.buffer.getChannelData(channel); // Original audio data for the channel
+      const newData = newBuffer.getChannelData(channel); // New buffer's data for the channel
 
-      // Copy data from 0 to start
-      const startSamples = Math.floor(start * sampleRate);
-      const endSamples = Math.floor(end * sampleRate);
-      newData.set(originalData.subarray(0, startSamples));
+      // Copy data before the cut
+      newData.set(originalData.subarray(0, startSample));
 
-      // Copy data from end to trackEnd
-      newData.set(
-        originalData.subarray(endSamples),
-        startSamples // Position after the first segment
-      );
+      // Copy data after the cut
+      newData.set(originalData.subarray(endSample), startSample);
     }
 
-    // Update the buffer and properties
+    // Update the track with the new buffer
     this.setBuffer(newBuffer);
-    this.setCues(trackStart, trackEnd - cutDuration);
-    this.duration = newDuration;
-    this.endTime = this.startTime + newDuration;
+
+    // Update cue points and duration
+    this.setCues(this.cueIn, this.cueOut - (end - start)); // Adjust cueOut to account for the cut
+    this.duration -= (end - start); // Adjust duration to reflect the new length
+    this.endTime = this.startTime + this.duration;
   }
+
 
 
   setStartTime(start) {

@@ -352,13 +352,15 @@ export default class {
           this.undoHistory.push(activeTrack.saveState()); // Save state for undo
 
           activeTrack.cut(selection.start, selection.end); // Perform the cut
-          activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate); // Recalculate peaks
+          activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate); // Recalculate waveform peaks
 
+          this.setTimeSelection(0, 0);
           this.adjustDuration(); // Adjust the playlist duration
           this.drawRequest(); // Redraw the waveform
         }
       }
     });
+
 
 
     ee.on("undo", () => {
