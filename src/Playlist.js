@@ -353,6 +353,8 @@ export default class {
 
           activeTrack.cut(selection.start, selection.end); // Perform the cut
 
+          activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate);
+
           this.setTimeSelection(0, 0); // Reset the selection
           this.adjustDuration(); // Adjust the playlist duration
           this.drawRequest(); // Redraw the waveform
