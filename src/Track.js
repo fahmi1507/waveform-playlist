@@ -14,6 +14,7 @@ import CanvasHook from "./render/CanvasHook";
 import FadeCanvasHook from "./render/FadeCanvasHook";
 import VolumeSliderHook from "./render/VolumeSliderHook";
 import StereoPanSliderHook from "./render/StereoPanSliderHook";
+import Playout from "./Playout";
 
 const MAX_CANVAS_WIDTH = 1000;
 
