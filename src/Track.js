@@ -129,7 +129,8 @@ export default class {
     this.endTime = this.startTime + this.duration;
 
     // Recalculate peaks
-    this.calculatePeaks(this.samplesPerPixel, sampleRate);
+
+    console.log('1.42')
   }
 
 
