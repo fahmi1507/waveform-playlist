@@ -87,40 +87,38 @@ export default class {
   }
 
   cut(start, end) {
-    const audioContext = this.playout.ac; // Access the AudioContext
+    const audioContext = this.playout.ac;
     if (!audioContext) throw new Error("AudioContext is not available.");
 
-    const channels = this.buffer.numberOfChannels; // Number of audio channels (e.g., 1 for mono, 2 for stereo)
-    const sampleRate = this.buffer.sampleRate; // Sample rate of the audio
-    const startSample = Math.floor(start * sampleRate); // Convert start time to sample index
-    const endSample = Math.floor(end * sampleRate); // Convert end time to sample index
-    const totalSamples = this.buffer.length; // Total number of samples in the buffer
+    const channels = this.buffer.numberOfChannels;
+    const sampleRate = this.buffer.sampleRate;
+    const startSample = Math.floor(start * sampleRate);
+    const endSample = Math.floor(end * sampleRate);
+    const totalSamples = this.buffer.length;
 
-    // Calculate the new buffer size (excluding the cut section)
+    // Calculate the new buffer size and create a new buffer
     const newBufferLength = totalSamples - (endSample - startSample);
-
-    // Create a new audio buffer
     const newBuffer = audioContext.createBuffer(channels, newBufferLength, sampleRate);
 
     // Copy audio data from the original buffer to the new buffer
     for (let channel = 0; channel < channels; channel++) {
-      const originalData = this.buffer.getChannelData(channel); // Original audio data for the channel
-      const newData = newBuffer.getChannelData(channel); // New buffer's data for the channel
+      const originalData = this.buffer.getChannelData(channel);
+      const newData = newBuffer.getChannelData(channel);
 
-      // Copy data before the cut
-      newData.set(originalData.subarray(0, startSample));
-
-      // Copy data after the cut
+      // Copy data before and after the cut
+      newData.set(originalData.subarray(0, startSample), 0);
       newData.set(originalData.subarray(endSample), startSample);
     }
 
-    // Update the track with the new buffer
+    // Update the buffer and recreate the Playout instance
     this.setBuffer(newBuffer);
+    this.playout = new Playout(audioContext, newBuffer, this.playout.masterGain);
 
-    // Update cue points and duration
-    this.setCues(this.cueIn, this.cueOut - (end - start)); // Adjust cueOut to account for the cut
-    this.duration -= (end - start); // Adjust duration to reflect the new length
+    // Update cues, duration, and peaks
+    this.setCues(this.cueIn, this.cueOut - (end - start));
+    this.duration -= (end - start);
     this.endTime = this.startTime + this.duration;
+    // this.calculatePeaks(this.samplesPerPixel, sampleRate);
   }
 
 
