@@ -357,9 +357,9 @@ export default class {
           console.log(selection.start, selection.end, 'selection')
           console.log(activeTrack.getStartTime(), activeTrack.getEndTime(), 'seek')
 
-          console.log(a, b)
+          console.log(a, b + a)
 
-          activeTrack.cut(a, b); // Perform the cut
+          activeTrack.cut(a, b + a); // Perform the cut
 
           activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate);
 
