@@ -351,16 +351,9 @@ export default class {
         const trackDuration = activeTrack.getDuration()
         if (activeTrack) {
           const a = selection.start - activeTrack.getStartTime()
-          const b = selection.end - selection.start
+          const b = selection.end - activeTrack.getStartTime()
 
           this.undoHistory.push(activeTrack.saveState()); // Save state for undo
-
-          console.log(selection.start, selection.end, 'selection')
-          console.log(activeTrack.getStartTime(), activeTrack.getEndTime(), 'seek')
-
-          console.log(a, b + a)
-
-          console.log(trackDuration, 'track duration')
 
           let secondDot = b + a
 
@@ -368,7 +361,9 @@ export default class {
             secondDot = trackDuration
           }
 
-          console.log(secondDot, 'second dot')
+          console.log(a, b, 'ab')
+          console.log(selection, 'selection')
+          console.log(activeTrack.getStartTime())
 
           activeTrack.cut(a, secondDot); // Perform the cut
 

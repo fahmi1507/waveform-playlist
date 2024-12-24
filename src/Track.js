@@ -119,7 +119,7 @@ export default class {
     }
 
     // Update the buffer and recreate the Playout instance
-    this.setBuffer(newBuffer);
+    this.setBuffer(newBuffer); // Update the buffer for playback and peaks
     this.playout = new Playout(audioContext, newBuffer, this.playout.masterGain);
 
     // Update cues, duration, and end time
@@ -128,10 +128,13 @@ export default class {
     this.duration -= cutDuration;
     this.endTime = this.startTime + this.duration;
 
-    // Recalculate peaks
-
-    console.log('1.42')
+    console.log({
+      cutStart: startSample,
+      cutEnd: endSample,
+      newBufferLength,
+    });
   }
+
 
 
 
