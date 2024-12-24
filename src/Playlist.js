@@ -350,16 +350,21 @@ export default class {
         const activeTrack = this.getActiveTrack();
         const trackDuration = activeTrack.getDuration()
         if (activeTrack) {
-          const a = selection.start - activeTrack.getStartTime()
+          let a = selection.start - activeTrack.getStartTime()
           const b = selection.end - activeTrack.getStartTime()
 
           this.undoHistory.push(activeTrack.saveState()); // Save state for undo
+
+          if (a < 0) {
+            a = 0
+          }
 
           let secondDot = b + a
 
           if (secondDot > trackDuration) {
             secondDot = trackDuration
           }
+
 
           console.log(a, b, 'ab')
           console.log(selection, 'selection')
