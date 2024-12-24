@@ -349,14 +349,12 @@ export default class {
       if (selection.start < selection.end) {
         const activeTrack = this.getActiveTrack();
         if (activeTrack) {
+          const a = selection.start - activeTrack.getStartTime()
+          const b = selection.start - activeTrack.getEndTime()
 
-          console.log(activeTrack.getStartTime(), activeTrack.getEndTime(), 'posisi')
-          console.log(selection.start, selection.end, 'selection')
-
-          return
           this.undoHistory.push(activeTrack.saveState()); // Save state for undo
 
-          activeTrack.cut(selection.start, selection.end); // Perform the cut
+          activeTrack.cut(a, b); // Perform the cut
 
           activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate);
 
@@ -928,7 +926,6 @@ export default class {
   }
 
   seek(start, end, track) {
-    console.log(start, end, track, 'seek')
     if (this.isPlaying()) {
       this.lastSeeked = start;
       this.pausedAt = undefined;
