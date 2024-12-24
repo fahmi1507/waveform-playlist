@@ -95,49 +95,46 @@ export default class {
     const sampleRate = this.buffer.sampleRate;
     const totalSamples = this.buffer.length;
 
-    // Convert start and end times to sample indices
     const startSample = Math.round(start * sampleRate);
     const endSample = Math.round(end * sampleRate);
 
-    // Validate the cut range
     if (startSample >= endSample || startSample < 0 || endSample > totalSamples) {
       throw new Error("Invalid cut range");
     }
 
-    // Calculate the length of the new buffer
     const newBufferLength = totalSamples - (endSample - startSample);
     const newBuffer = audioContext.createBuffer(channels, newBufferLength, sampleRate);
 
-    // Copy audio data into the new buffer
     for (let channel = 0; channel < channels; channel++) {
       const originalData = this.buffer.getChannelData(channel);
       const newData = newBuffer.getChannelData(channel);
 
-      // Copy data before the cut
       newData.set(originalData.subarray(0, startSample), 0);
-
-      // Copy data after the cut
       newData.set(originalData.subarray(endSample), startSample);
     }
 
-    // Update the buffer and recreate the Playout instance
     this.setBuffer(newBuffer);
     this.playout = new Playout(audioContext, newBuffer, this.playout.masterGain);
 
-    // Update metadata
     const cutDuration = (endSample - startSample) / sampleRate;
+    const previousDuration = this.duration;
+
     this.setCues(this.cueIn, this.cueOut - cutDuration);
-    this.duration -= cutDuration;
+    this.duration = newBufferLength / sampleRate; // Corrected duration calculation
     this.endTime = this.startTime + this.duration;
 
-    // Debugging info
     console.log({
+      cutStart: start,
+      cutEnd: end,
       cutStartSample: startSample,
       cutEndSample: endSample,
+      cutDuration,
+      previousDuration,
       newBufferLength,
       newDuration: this.duration,
     });
   }
+
 
 
 
