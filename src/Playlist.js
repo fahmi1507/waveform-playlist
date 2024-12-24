@@ -350,14 +350,14 @@ export default class {
         const activeTrack = this.getActiveTrack();
         if (activeTrack) {
           const a = selection.start - activeTrack.getStartTime()
-          const b = selection.end - activeTrack.getEndTime()
+          const b = selection.end - selection.start
 
-          // this.undoHistory.push(activeTrack.saveState()); // Save state for undo
+          this.undoHistory.push(activeTrack.saveState()); // Save state for undo
 
           console.log(selection.start, selection.end, 'selection')
           console.log(activeTrack.getStartTime(), activeTrack.getEndTime(), 'seek')
 
-          return
+          console.log(a, b)
 
           activeTrack.cut(a, b); // Perform the cut
 
