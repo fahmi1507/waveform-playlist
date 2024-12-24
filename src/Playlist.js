@@ -388,15 +388,12 @@ export default class {
       const track = this.getActiveTrack();
 
       if (this.undoHistory.length > 0) {
-        const lastState = this.undoHistory.pop();
+        const lastState = this.undoHistory.pop(); // Retrieve last saved state
 
-        // Restore the state of the active track
-        track.restoreState(lastState);
-
-        // Recalculate peaks and redraw
-        track.calculatePeaks(this.samplesPerPixel, this.sampleRate);
-        this.adjustDuration();
-        this.drawRequest();
+        track.restoreState(lastState); // Restore the track state
+        track.calculatePeaks(this.samplesPerPixel, this.sampleRate); // Recalculate waveform peaks
+        this.adjustDuration(); // Adjust duration
+        this.drawRequest(); // Redraw the waveform
       } else {
         console.log("No actions to undo.");
       }

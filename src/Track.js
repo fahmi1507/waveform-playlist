@@ -829,6 +829,7 @@ export default class {
   // fahmi
   saveState() {
     return {
+      buffer: this.buffer, // Save the original audio buffer
       cueIn: this.cueIn,
       cueOut: this.cueOut,
       startTime: this.startTime,
@@ -837,13 +838,19 @@ export default class {
     };
   }
 
+
   restoreState(state) {
     if (!state) return;
 
+    this.buffer = state.buffer; // Restore the original buffer
+    this.setBuffer(this.buffer); // Update Playout
     this.cueIn = state.cueIn;
     this.cueOut = state.cueOut;
     this.startTime = state.startTime;
     this.endTime = state.endTime;
     this.duration = state.duration;
+
+    this.playout = new Playout(this.playout.ac, this.buffer, this.playout.masterGain);
   }
+
 }
