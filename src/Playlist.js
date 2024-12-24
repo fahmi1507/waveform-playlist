@@ -348,6 +348,7 @@ export default class {
       const selection = this.getTimeSelection(); // Get the selected range
       if (selection.start < selection.end) {
         const activeTrack = this.getActiveTrack();
+        const trackDuration = activeTrack.getDuration()
         if (activeTrack) {
           const a = selection.start - activeTrack.getStartTime()
           const b = selection.end - selection.start
@@ -359,7 +360,17 @@ export default class {
 
           console.log(a, b + a)
 
-          activeTrack.cut(a, b + a); // Perform the cut
+          console.log(trackDuration, 'track duration')
+
+          let secondDot = b + a
+
+          if (secondDot > trackDuration) {
+            secondDot = trackDuration
+          }
+
+          console.log(secondDot, 'second dot')
+
+          activeTrack.cut(a, secondDot); // Perform the cut
 
           activeTrack.calculatePeaks(this.samplesPerPixel, this.sampleRate);
 
