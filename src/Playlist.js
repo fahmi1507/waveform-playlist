@@ -923,6 +923,7 @@ export default class {
   }
 
   seek(start, end, track) {
+    console.log(start, end, track, 'seek')
     if (this.isPlaying()) {
       this.lastSeeked = start;
       this.pausedAt = undefined;
