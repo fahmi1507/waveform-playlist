@@ -99,21 +99,20 @@ export default class {
     const startSample = Math.round(start * sampleRate);
     const endSample = Math.round(end * sampleRate);
 
-    // Validate cut range
+    // Validate the cut range
     if (startSample >= endSample || startSample < 0 || endSample > totalSamples) {
       throw new Error("Invalid cut range");
     }
 
-    // Calculate duration of the cut range in seconds
-    const cutDuration = (endSample - startSample) / sampleRate;
+    // Calculate the duration of the cut
+    const cutDuration = (end - start); // Correct calculation of cut duration
 
     // Calculate the new buffer length
     const newBufferLength = totalSamples - (endSample - startSample);
 
-    // Create a new audio buffer for the remaining audio
+    // Create a new buffer for the remaining audio
     const newBuffer = audioContext.createBuffer(channels, newBufferLength, sampleRate);
 
-    // Copy the data from the original buffer into the new buffer
     for (let channel = 0; channel < channels; channel++) {
       const originalData = this.buffer.getChannelData(channel);
       const newData = newBuffer.getChannelData(channel);
@@ -125,17 +124,17 @@ export default class {
       newData.set(originalData.subarray(endSample), startSample);
     }
 
-    // Update the buffer and playback state
+    // Update the buffer with the new data
     this.setBuffer(newBuffer);
     this.playout = new Playout(audioContext, newBuffer, this.playout.masterGain);
 
-    // Adjust cues and duration
+    // Update cues and metadata
     const previousDuration = this.duration;
     this.setCues(this.cueIn, this.cueOut - cutDuration);
-    this.duration = newBufferLength / sampleRate; // Derive duration from the buffer length
-    this.endTime = this.startTime + this.duration; // Update end time
+    this.duration = newBufferLength / sampleRate; // Update duration using buffer length
+    this.endTime = this.startTime + this.duration;
 
-    console.log('803')
+    console.log('812')
 
     console.log({
       cutStart: start,
@@ -148,6 +147,7 @@ export default class {
       newDuration: this.duration,
     });
   }
+
 
 
 
