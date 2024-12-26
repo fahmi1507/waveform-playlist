@@ -133,6 +133,8 @@ export default class {
     this.duration -= cutDuration; // Adjust duration based on the cut
     this.endTime = this.startTime + this.duration; // Update end time
 
+    console.log('7.57')
+
     console.log({
       cutStart: start,
       cutEnd: end,
