@@ -359,7 +359,7 @@ export default class {
             a = 0
           }
 
-          let secondDot = b + a
+          let secondDot = b
 
           if (secondDot > trackDuration) {
             secondDot = trackDuration
