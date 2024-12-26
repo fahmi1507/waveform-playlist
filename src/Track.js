@@ -99,19 +99,21 @@ export default class {
     const startSample = Math.round(start * sampleRate);
     const endSample = Math.round(end * sampleRate);
 
+    // Validate cut range
     if (startSample >= endSample || startSample < 0 || endSample > totalSamples) {
       throw new Error("Invalid cut range");
     }
 
-    // Calculate the duration of the cut range
-    const cutDuration = (end - start); // Correctly calculate the time difference
+    // Calculate duration of the cut range in seconds
+    const cutDuration = (endSample - startSample) / sampleRate;
 
-    // Calculate the new buffer length after the cut
+    // Calculate the new buffer length
     const newBufferLength = totalSamples - (endSample - startSample);
 
-    // Create a new buffer for the remaining audio
+    // Create a new audio buffer for the remaining audio
     const newBuffer = audioContext.createBuffer(channels, newBufferLength, sampleRate);
 
+    // Copy the data from the original buffer into the new buffer
     for (let channel = 0; channel < channels; channel++) {
       const originalData = this.buffer.getChannelData(channel);
       const newData = newBuffer.getChannelData(channel);
@@ -123,17 +125,17 @@ export default class {
       newData.set(originalData.subarray(endSample), startSample);
     }
 
-    // Replace the buffer with the new one
+    // Update the buffer and playback state
     this.setBuffer(newBuffer);
     this.playout = new Playout(audioContext, newBuffer, this.playout.masterGain);
 
-    // Update track metadata
-    const previousDuration = this.duration; // Save the previous duration for debugging
+    // Adjust cues and duration
+    const previousDuration = this.duration;
     this.setCues(this.cueIn, this.cueOut - cutDuration);
-    this.duration -= cutDuration; // Adjust duration based on the cut
+    this.duration = newBufferLength / sampleRate; // Derive duration from the buffer length
     this.endTime = this.startTime + this.duration; // Update end time
 
-    console.log('7.57')
+    console.log('803')
 
     console.log({
       cutStart: start,
@@ -146,6 +148,7 @@ export default class {
       newDuration: this.duration,
     });
   }
+
 
 
   setStartTime(start) {
