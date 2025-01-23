@@ -183,7 +183,8 @@ export default class {
 
     const fade = {
       shape,
-      start: 0,
+      start: 2,
+      // start: 0,
       end: duration,
     };
 
