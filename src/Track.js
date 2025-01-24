@@ -176,16 +176,19 @@ export default class {
     this.enabledStates = _assign({}, defaultStatesEnabled, enabledStates);
   }
 
-  setFadeIn(duration, shape = "logarithmic") {
-    if (duration > this.duration) {
-      throw new Error("Invalid Fade In");
-    }
+  setFadeIn(pos, shape = "logarithmic") {
+    // if (duration > this.duration) {
+    //   throw new Error("Invalid Fade In");
+    // }
+
+    const { start, end } = pos;
+
+    console.table({ start, end })
 
     const fade = {
       shape,
-      start: 2,
-      // start: 0,
-      end: duration,
+      start,
+      end,
     };
 
     if (this.fadeIn) {
@@ -668,7 +671,7 @@ export default class {
         );
 
         const startingPoint = secondsToPixels(
-          2,
+          fadeIn.start,
           data.resolution,
           data.sampleRate
         );
@@ -680,7 +683,7 @@ export default class {
             "div.wp-fade.wp-fadein",
             {
               attributes: {
-                style: `position: absolute; height: ${data.height}px; width: ${fadeWidth}px; top: 0; left: 0; z-index: 4;`,
+                style: `position: absolute; height: ${data.height}px; width: ${fadeWidth}px; top: 0; left: ${startingPoint}px; z-index: 4;`,
               },
             },
             [
