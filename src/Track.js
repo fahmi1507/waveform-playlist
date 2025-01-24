@@ -667,6 +667,14 @@ export default class {
           data.sampleRate
         );
 
+        const startingPoint = secondsToPixels(
+          2,
+          data.resolution,
+          data.sampleRate
+        );
+
+        console.log(startingPoint, 'starting point')
+
         channelChildren.push(
           h(
             "div.wp-fade.wp-fadein",
