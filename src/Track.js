@@ -390,6 +390,8 @@ export default class {
           fadeDuration = fade.end - fade.start;
         }
 
+        console.log(fadeStart, 'fadestart')
+
         switch (fade.type) {
           case FADEIN: {
             playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape);
