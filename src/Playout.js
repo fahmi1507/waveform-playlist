@@ -35,17 +35,21 @@ export default class {
   }
 
 
+
   applyFadeIn(start, duration, shape = "logarithmic") {
-    if (!this.fadeIn) {
-      this.fadeIn = []; // Store multiple fade-ins
-    }
+    if (!this.fadeGain) return;
 
-    const fadeData = { start, duration, shape };
-    this.fadeIn.push(fadeData);
+    const gain = this.fadeGain.gain;
 
-    // Apply fade-in to the gain node
-    this.applyMultipleFadeIns();
+    // Cancel existing automation at this exact start time
+    gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap
+
+    console.log(`Applying fade-in: Start=${start}, Duration=${duration}, Shape=${shape}`);
+
+    // Apply fade-in smoothly
+    createFadeIn(gain, shape, start, duration);
   }
+
 
 
   applyFadeOut(start, duration, shape = "logarithmic") {
