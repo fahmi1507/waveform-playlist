@@ -637,9 +637,10 @@ export default class {
 
     const closeButton = (fadeId) =>
       h(
-        "button.close-button",
+        "button",
         {
           attributes: {
+            class: "close-button",
             style: `
                       position: absolute;
                       bottom: 5px;
@@ -651,15 +652,25 @@ export default class {
                       width: 20px;
                       height: 20px;
                       font-size: 12px;
-                      cursor: pointer;
-                      z-index: 10;
+                      cursor: pointer; /* ✅ Ensures pointer on hover */
+                      z-index: 999999;
                   `,
             title: "Remove Fade",
           },
-          onclick: () => this.removeFade(fadeId), // ✅ Remove fade when clicked
+          onclick: (event) => {
+            event.stopPropagation(); // ✅ Prevents event from interfering with other handlers
+            console.log(`Removing fade-in: ${fadeId}`);
+
+            // ✅ Remove fade
+            if (this.fades[fadeId]) {
+              delete this.fades[fadeId];
+              this.fadeIn = this.fadeIn.filter(id => id !== fadeId);
+            }
+          },
         },
         "✖"
       );
+
 
     const channels = Object.keys(this.peaks.data).map((channelNum) => {
       const channelChildren = [
