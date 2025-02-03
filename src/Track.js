@@ -177,13 +177,9 @@ export default class {
   }
 
   setFadeIn(pos, shape = "logarithmic") {
-    // if (duration > this.duration) {
-    //   throw new Error("Invalid Fade In");
-    // }
-
     const { start, end } = pos;
 
-    console.table({ start, end })
+    console.table({ start, end });
 
     const fade = {
       shape,
@@ -191,13 +187,16 @@ export default class {
       end,
     };
 
-    if (this.fadeIn) {
-      this.removeFade(this.fadeIn);
-      this.fadeIn = undefined;
+    // Initialize fadeIn as an array if it's not defined
+    if (!this.fadeIn) {
+      this.fadeIn = [];
     }
 
-    this.fadeIn = this.saveFade(FADEIN, fade.shape, fade.start, fade.end);
+    // Save the new fade-in and store its ID
+    const fadeId = this.saveFade(FADEIN, fade.shape, fade.start, fade.end);
+    this.fadeIn.push(fadeId); // Add new fade-in to the list
   }
+
 
   setFadeOut(duration, shape = "logarithmic") {
     if (duration > this.duration) {
@@ -332,18 +331,12 @@ export default class {
     };
 
     const options = _assign({}, defaultOptions, config);
-    const playoutSystem = options.isOffline
-      ? this.offlinePlayout
-      : this.playout;
+    const playoutSystem = options.isOffline ? this.offlinePlayout : this.playout;
 
     // 1) track has no content to play.
     // 2) track does not play in this selection.
-    if (
-      this.endTime <= startTime ||
-      (segment && startTime + segment < this.startTime)
-    ) {
-      // return a resolved promise since this track is technically "stopped".
-      return Promise.resolve();
+    if (this.endTime <= startTime || (segment && startTime + segment < this.startTime)) {
+      return Promise.resolve(); // return a resolved promise since this track is technically "stopped".
     }
 
     // track should have something to play if it gets here.
@@ -351,7 +344,6 @@ export default class {
     // the track starts in the future or on the cursor position
     if (this.startTime >= startTime) {
       start = 0;
-      // schedule additional delay for this audio node.
       when += this.startTime - startTime;
 
       if (endTime) {
@@ -374,8 +366,33 @@ export default class {
     const relPos = startTime - this.startTime;
     const sourcePromise = playoutSystem.setUpSource();
 
-    // param relPos: cursor position in seconds relative to this track.
-    // can be negative if the cursor is placed before the start of this track etc.
+    // Apply all fade-ins
+    if (this.fadeIn && Array.isArray(this.fadeIn) && this.fadeIn.length > 0) {
+      this.fadeIn.forEach((fadeId) => {
+        const fade = this.fades[fadeId];
+        if (!fade) return;
+
+        let fadeStart;
+        let fadeDuration;
+
+        // Only apply fade-in if it happens after the current playback position
+        if (relPos < fade.end) {
+          if (relPos <= fade.start) {
+            fadeStart = now + (fade.start - relPos);
+            fadeDuration = fade.end - fade.start;
+          } else if (relPos > fade.start && relPos < fade.end) {
+            fadeStart = now - (relPos - fade.start);
+            fadeDuration = fade.end - fade.start;
+          }
+
+          console.log(`Applying fade-in at ${fadeStart} for ${fadeDuration}s`);
+
+          playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape);
+        }
+      });
+    }
+
+    // Apply fade-out logic (unchanged)
     _forOwn(this.fades, (fade) => {
       let fadeStart;
       let fadeDuration;
@@ -390,20 +407,16 @@ export default class {
           fadeDuration = fade.end - fade.start;
         }
 
-        console.log(fadeStart, 'fadestart')
-
         switch (fade.type) {
-          case FADEIN: {
-            playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape);
+          case FADEIN:
+            // Skip fade-in here since it's already handled above
             break;
-          }
-          case FADEOUT: {
+          case FADEOUT:
+            console.log(`Applying fade-out at ${fadeStart} for ${fadeDuration}s`);
             playoutSystem.applyFadeOut(fadeStart, fadeDuration, fade.shape);
             break;
-          }
-          default: {
+          default:
             throw new Error("Invalid fade type saved on track.");
-          }
         }
       }
     });
@@ -416,6 +429,7 @@ export default class {
 
     return sourcePromise;
   }
+
 
   scheduleStop(when = 0) {
     this.playout.stop(when);
@@ -663,49 +677,54 @@ export default class {
         offset += MAX_CANVAS_WIDTH;
       }
 
-      // if there are fades, display them.
-      if (this.fadeIn) {
-        const fadeIn = this.fades[this.fadeIn];
-        const fadeWidth = secondsToPixels(
-          fadeIn.end - fadeIn.start,
-          data.resolution,
-          data.sampleRate
-        );
+      // === 🔹 Display multiple fade-ins instead of just one ===
+      if (this.fadeIn && Array.isArray(this.fadeIn) && this.fadeIn.length > 0) {
+        this.fadeIn.forEach((fadeId) => {
+          const fadeIn = this.fades[fadeId];
+          if (!fadeIn) return;
 
-        const startingPoint = secondsToPixels(
-          fadeIn.start,
-          data.resolution,
-          data.sampleRate
-        );
+          const fadeWidth = secondsToPixels(
+            fadeIn.end - fadeIn.start,
+            data.resolution,
+            data.sampleRate
+          );
 
-        console.log(startingPoint, 'starting point')
+          const startingPoint = secondsToPixels(
+            fadeIn.start,
+            data.resolution,
+            data.sampleRate
+          );
 
-        channelChildren.push(
-          h(
-            "div.wp-fade.wp-fadein",
-            {
-              attributes: {
-                style: `position: absolute; height: ${data.height}px; width: ${fadeWidth}px; top: 0; left: ${startingPoint}px; z-index: 4;`,
-              },
-            },
-            [
-              h("canvas", {
+          console.log(`Rendering fade-in at ${startingPoint} width ${fadeWidth}`);
+
+          channelChildren.push(
+            h(
+              "div.wp-fade.wp-fadein",
+              {
                 attributes: {
-                  width: fadeWidth,
-                  height: data.height,
+                  style: `position: absolute; height: ${data.height}px; width: ${fadeWidth}px; top: 0; left: ${startingPoint}px; z-index: 4;`,
                 },
-                hook: new FadeCanvasHook(
-                  fadeIn.type,
-                  fadeIn.shape,
-                  fadeIn.end - fadeIn.start,
-                  data.resolution
-                ),
-              }),
-            ]
-          )
-        );
+              },
+              [
+                h("canvas", {
+                  attributes: {
+                    width: fadeWidth,
+                    height: data.height,
+                  },
+                  hook: new FadeCanvasHook(
+                    fadeIn.type,
+                    fadeIn.shape,
+                    fadeIn.end - fadeIn.start,
+                    data.resolution
+                  ),
+                }),
+              ]
+            )
+          );
+        });
       }
 
+      // === ✅ Fade-out logic remains unchanged ===
       if (this.fadeOut) {
         const fadeOut = this.fades[this.fadeOut];
         const fadeWidth = secondsToPixels(
@@ -807,13 +826,13 @@ export default class {
       `div.channel-wrapper${audibleClass}${customClass}`,
       {
         attributes: {
-          style: `margin-left: ${channelMargin}px; height: ${data.height * numChan
-            }px;`,
+          style: `margin-left: ${channelMargin}px; height: ${data.height * numChan}px;`,
         },
       },
       channelChildren
     );
   }
+
 
   getTrackDetails() {
     const info = {

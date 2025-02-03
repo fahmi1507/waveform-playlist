@@ -25,9 +25,28 @@ export default class {
     }
   }
 
-  applyFadeIn(start, duration, shape = "logarithmic") {
-    this.applyFade(FADEIN, start, duration, shape);
+  applyMultipleFadeIns() {
+    if (!this.fadeIn || this.fadeIn.length === 0) return;
+
+    this.fadeIn.forEach(({ start, duration, shape }) => {
+      console.log(`Applying fade-in at ${start} for ${duration}s`);
+      createFadeIn(this.fadeGain.gain, shape, start, duration);
+    });
   }
+
+
+  applyFadeIn(start, duration, shape = "logarithmic") {
+    if (!this.fadeIn) {
+      this.fadeIn = []; // Store multiple fade-ins
+    }
+
+    const fadeData = { start, duration, shape };
+    this.fadeIn.push(fadeData);
+
+    // Apply fade-in to the gain node
+    this.applyMultipleFadeIns();
+  }
+
 
   applyFadeOut(start, duration, shape = "logarithmic") {
     this.applyFade(FADEOUT, start, duration, shape);
