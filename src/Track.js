@@ -635,6 +635,32 @@ export default class {
       }),
     ];
 
+    const closeButton = (fadeId) =>
+      h(
+        "button.close-button",
+        {
+          attributes: {
+            style: `
+                      position: absolute;
+                      bottom: 5px;
+                      right: 5px;
+                      background: rgba(255, 0, 0, 0.7);
+                      color: white;
+                      border: none;
+                      border-radius: 50%;
+                      width: 20px;
+                      height: 20px;
+                      font-size: 12px;
+                      cursor: pointer;
+                      z-index: 10;
+                  `,
+            title: "Remove Fade",
+          },
+          onclick: () => this.removeFade(fadeId), // ✅ Remove fade when clicked
+        },
+        "✖"
+      );
+
     const channels = Object.keys(this.peaks.data).map((channelNum) => {
       const channelChildren = [
         h("div.channel-progress", {
@@ -718,6 +744,9 @@ export default class {
                     data.resolution
                   ),
                 }),
+
+                closeButton(fadeId), // ✅ Add close button per fade
+
               ]
             )
           );
