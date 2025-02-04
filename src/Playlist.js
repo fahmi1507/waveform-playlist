@@ -201,8 +201,8 @@ export default class {
     const ee = this.ee;
 
     ee.on("redraw", () => {
-      console.log('redraw 123456')
       this.drawRequest();
+      this.rewind();
     });
 
     ee.on("automaticscroll", (val) => {
