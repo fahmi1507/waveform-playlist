@@ -666,7 +666,7 @@ export default class {
               delete this.fades[fadeId];
               this.fadeIn = this.fadeIn.filter(id => id !== fadeId);
 
-              this.ee.emit("clear", this);
+              this.ee.emit("redraw");
             }
           },
         },

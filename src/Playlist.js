@@ -200,6 +200,11 @@ export default class {
   setUpEventEmitter() {
     const ee = this.ee;
 
+    ee.on("redraw", () => {
+      console.log('redraw 123456')
+      this.drawRequest();
+    });
+
     ee.on("automaticscroll", (val) => {
       this.isAutomaticScroll = val;
     });
