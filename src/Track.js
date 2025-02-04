@@ -643,15 +643,15 @@ export default class {
             class: "close-button",
             style: `
                       position: absolute;
-                      bottom: 5px;
+                      bottom: -10px;
                       right: 5px;
                       background: rgba(255, 0, 0, 0.7);
                       color: white;
                       border: none;
                       border-radius: 50%;
-                      width: 20px;
-                      height: 20px;
-                      font-size: 12px;
+                      width: 14px;
+                      height: 14px;
+                      font-size: 10px;
                       cursor: pointer; /* ✅ Ensures pointer on hover */
                       z-index: 999999;
                   `,
@@ -665,6 +665,8 @@ export default class {
             if (this.fades[fadeId]) {
               delete this.fades[fadeId];
               this.fadeIn = this.fadeIn.filter(id => id !== fadeId);
+
+              this.ee.emit("clear", this);
             }
           },
         },
