@@ -385,8 +385,6 @@ export default class {
             fadeDuration = fade.end - fade.start;
           }
 
-          console.log(`Applying fade-in at ${fadeStart} for ${fadeDuration}s`);
-
           playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape);
         }
       });
@@ -412,7 +410,6 @@ export default class {
             // Skip fade-in here since it's already handled above
             break;
           case FADEOUT:
-            console.log(`Applying fade-out at ${fadeStart} for ${fadeDuration}s`);
             playoutSystem.applyFadeOut(fadeStart, fadeDuration, fade.shape);
             break;
           default:
