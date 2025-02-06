@@ -31,7 +31,7 @@
     "@babel/runtime": "^7.17.2",
     "event-emitter": "^0.3.4",
     "fade-curves": "^1.0.2",
-    "fade-maker": "^1.0.3",
+    "fade-maker": "git+https://github.com/fahmi1507/fade-maker.git#v1",
     "inline-worker": "^1.1.0",
     "lodash.assign": "^4.0.0",
     "lodash.defaultsdeep": "^4.6.1",
