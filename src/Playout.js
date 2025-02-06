@@ -29,7 +29,6 @@ export default class {
     if (!this.fadeIn || this.fadeIn.length === 0) return;
 
     this.fadeIn.forEach(({ start, duration, shape }) => {
-      console.log(`Applying fade-in at ${start} for ${duration}s`);
       createFadeIn(this.fadeGain.gain, shape, start, duration);
     });
   }
@@ -43,8 +42,6 @@ export default class {
 
     // Cancel existing automation at this exact start time
     gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap
-
-    console.log(`Applying fade-in: Start=${start}, Duration=${duration}, Shape=${shape}`);
 
     // Apply fade-in smoothly
     createFadeIn(gain, shape, start, duration);
