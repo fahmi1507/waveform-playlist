@@ -35,16 +35,18 @@ export default class {
 
 
 
-  applyFadeIn(start, duration, shape = "logarithmic") {
+  applyFadeIn(start, duration, shape = "logarithmic", drawStart = 0, drawEnd = 1) {
     if (!this.fadeGain) return;
 
     const gain = this.fadeGain.gain;
+
+    console.log('123 <<<<')
 
     // Cancel existing automation at this exact start time
     gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap
 
     // Apply fade-in smoothly
-    createFadeIn(gain, shape, start, duration);
+    createFadeIn(gain, shape, start, duration, drawStart, drawEnd);
   }
 
 

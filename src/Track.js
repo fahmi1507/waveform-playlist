@@ -177,9 +177,9 @@ export default class {
   }
 
   setFadeIn(pos, shape = "logarithmic") {
-    const { start, end } = pos;
+    const { start, end, drawStart, drawEnd } = pos;
 
-    console.table({ start, end });
+    console.table({ drawStart, drawEnd }, '<<<< draw start');
 
     const fade = {
       shape,
@@ -193,7 +193,7 @@ export default class {
     }
 
     // Save the new fade-in and store its ID
-    const fadeId = this.saveFade(FADEIN, fade.shape, fade.start, fade.end);
+    const fadeId = this.saveFade(FADEIN, fade.shape, fade.start, fade.end, drawStart, drawEnd);
     this.fadeIn.push(fadeId); // Add new fade-in to the list
   }
 
@@ -217,7 +217,7 @@ export default class {
     this.fadeOut = this.saveFade(FADEOUT, fade.shape, fade.start, fade.end);
   }
 
-  saveFade(type, shape, start, end) {
+  saveFade(type, shape, start, end, drawStart = 0, drawEnd = 1) {
     const id = uuidv4();
 
     this.fades[id] = {
@@ -225,6 +225,8 @@ export default class {
       shape,
       start,
       end,
+      drawStart,
+      drawEnd
     };
 
     return id;
@@ -370,6 +372,8 @@ export default class {
     if (this.fadeIn && Array.isArray(this.fadeIn) && this.fadeIn.length > 0) {
       this.fadeIn.forEach((fadeId) => {
         const fade = this.fades[fadeId];
+
+        console.log(fade, '<<<looping')
         if (!fade) return;
 
         let fadeStart;
@@ -385,7 +389,7 @@ export default class {
             fadeDuration = fade.end - fade.start;
           }
 
-          playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape);
+          playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape, fade.drawStart, fade.drawEnd);
         }
       });
     }
@@ -656,7 +660,7 @@ export default class {
           },
           onclick: (event) => {
             event.stopPropagation(); // ✅ Prevents event from interfering with other handlers
-            console.log(`Removing fade-in: ${fadeId}`);
+            // console.log(`Removing fade-in: ${fadeId}`);
 
             // ✅ Remove fade
             if (this.fades[fadeId]) {
@@ -731,8 +735,6 @@ export default class {
             data.sampleRate
           );
 
-          console.log(`Rendering fade-in at ${startingPoint} width ${fadeWidth}`);
-
           channelChildren.push(
             h(
               "div.wp-fade.wp-fadein",
@@ -751,7 +753,9 @@ export default class {
                     fadeIn.type,
                     fadeIn.shape,
                     fadeIn.end - fadeIn.start,
-                    data.resolution
+                    data.resolution,
+                    fadeIn.drawStart,
+                    fadeIn.drawEnd,
                   ),
                 }),
 
