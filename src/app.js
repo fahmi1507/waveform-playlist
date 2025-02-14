@@ -5,6 +5,8 @@ import Playlist from "./Playlist";
 
 // dependency
 // "fade-maker": "github:fahmi1507/fade-maker#v1",
+// "fade-maker": "file:/Users/mbp-rci-fahmi/Documents/fade-maker",
+
 
 export function init(options = {}, ee = EventEmitter()) {
   if (options.container === undefined) {

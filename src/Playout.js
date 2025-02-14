@@ -43,7 +43,7 @@ export default class {
     console.log('123 <<<<')
 
     // Cancel existing automation at this exact start time
-    gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap
+    // gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap
 
     // Apply fade-in smoothly
     createFadeIn(gain, shape, start, duration, drawStart, drawEnd);

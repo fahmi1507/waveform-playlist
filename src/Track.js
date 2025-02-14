@@ -370,10 +370,22 @@ export default class {
 
     // Apply all fade-ins
     if (this.fadeIn && Array.isArray(this.fadeIn) && this.fadeIn.length > 0) {
-      this.fadeIn.forEach((fadeId) => {
+      console.log(this.fadeIn, '<<arra')
+
+      const theArray = this.fadeIn.map(fadeId => ({ id: fadeId, ...this.fades[fadeId] })).sort((a, b) => a.start - b.start).map(e => e.id)
+
+      console.log(theArray, 'the array')
+
+      theArray.forEach((fadeId, index) => {
         const fade = this.fades[fadeId];
 
-        console.log(fade, '<<<looping')
+        // console.log(fade, '<<<looping')
+
+        const prevFadeId = theArray[index - 1];
+        const prevFade = prevFadeId ? this.fades[prevFadeId] : null;
+
+        // console.log(prevFade, 'prev fade')
+
         if (!fade) return;
 
         let fadeStart;
@@ -388,6 +400,20 @@ export default class {
             fadeStart = now - (relPos - fade.start);
             fadeDuration = fade.end - fade.start;
           }
+
+          if (prevFade) {
+            if (fade.start < prevFade.end) {
+              console.log('overlapped======')
+
+              // fadeStart = prevFade.end
+
+              fadeStart = now - (relPos - prevFade.end);
+            }
+          }
+
+          console.log(fadeStart, 'start')
+
+          console.log(fadeDuration, 'duration')
 
           playoutSystem.applyFadeIn(fadeStart, fadeDuration, fade.shape, fade.drawStart, fade.drawEnd);
         }
