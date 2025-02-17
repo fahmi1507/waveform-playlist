@@ -100,6 +100,17 @@ class FadeCanvasHook {
     ctx.beginPath();
     ctx.moveTo(0, yStart);
 
+    console.log('Fade Type:', this.type === FADEIN ? 'FADEIN' : 'FADEOUT');
+    console.log('Canvas Width:', width, 'Canvas Height:', height);
+    console.log('Fade Start Y:', yStart, 'Fade End Y:', yEnd);
+    console.log('Curve Values:', curve.slice(0, 10)); // First 10 values for quick check
+
+    for (let i = 1; i < len; i += 10) { // Log every 10th point
+      const y = yStart + (yEnd - yStart) * curve[i];
+      console.log('X:', i, 'Y:', y, 'Curve Value:', curve[i]);
+    }
+
+
     for (let i = 1; i < len; i += 1) {
       const progress = i / len; // Normalize progress (0 to 1)
       const y = yStart + (yEnd - yStart) * curve[i]; // Interpolate position
