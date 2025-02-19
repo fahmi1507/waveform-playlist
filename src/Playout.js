@@ -33,17 +33,11 @@ export default class {
     });
   }
 
-
-
   applyFadeIn(start, duration, shape = "logarithmic", drawStart = 0, drawEnd = 1) {
     if (!this.fadeGain) return;
 
     const gain = this.fadeGain.gain;
 
-    console.log('123 <<<<')
-
-    // Cancel existing automation at this exact start time
-    // gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap
 
     // Apply fade-in smoothly
     createFadeIn(gain, shape, start, duration, drawStart, drawEnd);
@@ -51,8 +45,13 @@ export default class {
 
 
 
-  applyFadeOut(start, duration, shape = "logarithmic") {
-    this.applyFade(FADEOUT, start, duration, shape);
+  applyFadeOut(start, duration, shape = "logarithmic", drawStart = 0, drawEnd = 1) {
+    if (!this.fadeGain) return;
+
+    const gain = this.fadeGain.gain;
+
+    // Apply fade-out smoothly
+    createFadeOut(gain, shape, start, duration, drawStart, drawEnd);
   }
 
   isPlaying() {
@@ -184,3 +183,8 @@ export default class {
     }
   }
 }
+
+// console.log('123 <<<<')
+
+// Cancel existing automation at this exact start time
+// gain.cancelScheduledValues(start - 0.001); // Prevent exact overlap

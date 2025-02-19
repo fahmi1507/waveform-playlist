@@ -198,24 +198,27 @@ export default class {
   }
 
 
-  setFadeOut(duration, shape = "logarithmic") {
-    if (duration > this.duration) {
-      throw new Error("Invalid Fade Out");
-    }
+  setFadeOut(pos, shape = "logarithmic") {
+    const { start, end, drawStart, drawEnd } = pos;
+
+    console.table({ drawStart, drawEnd }, '<<<< draw start');
 
     const fade = {
       shape,
-      start: this.duration - duration,
-      end: this.duration,
+      start,
+      end,
     };
 
-    if (this.fadeOut) {
-      this.removeFade(this.fadeOut);
-      this.fadeOut = undefined;
+    // Initialize fadeOut as an array if it's not defined
+    if (!this.fadeOut) {
+      this.fadeOut = [];
     }
 
-    this.fadeOut = this.saveFade(FADEOUT, fade.shape, fade.start, fade.end);
+    // Save the new fade-out and store its ID
+    const fadeId = this.saveFade(FADEOUT, fade.shape, fade.start, fade.end, drawStart, drawEnd);
+    this.fadeOut.push(fadeId); // Add new fade-out to the list
   }
+
 
   saveFade(type, shape, start, end, drawStart = 0, drawEnd = 1) {
     const id = uuidv4();
@@ -370,7 +373,7 @@ export default class {
 
     // Apply all fade-ins
     if (this.fadeIn && Array.isArray(this.fadeIn) && this.fadeIn.length > 0) {
-      console.log(this.fadeIn, '<<arra')
+      // console.log(this.fadeIn, '<<arra')
 
       const theArray = this.fadeIn.map(fadeId => ({ id: fadeId, ...this.fades[fadeId] })).sort((a, b) => a.start - b.start).map(e => e.id)
 
@@ -421,32 +424,73 @@ export default class {
     }
 
     // Apply fade-out logic (unchanged)
-    _forOwn(this.fades, (fade) => {
-      let fadeStart;
-      let fadeDuration;
+    // _forOwn(this.fades, (fade) => {
+    //   let fadeStart;
+    //   let fadeDuration;
 
-      // only apply fade if it's ahead of the cursor.
-      if (relPos < fade.end) {
-        if (relPos <= fade.start) {
-          fadeStart = now + (fade.start - relPos);
-          fadeDuration = fade.end - fade.start;
-        } else if (relPos > fade.start && relPos < fade.end) {
-          fadeStart = now - (relPos - fade.start);
-          fadeDuration = fade.end - fade.start;
-        }
+    //   // only apply fade if it's ahead of the cursor.
+    //   if (relPos < fade.end) {
+    //     if (relPos <= fade.start) {
+    //       fadeStart = now + (fade.start - relPos);
+    //       fadeDuration = fade.end - fade.start;
+    //     } else if (relPos > fade.start && relPos < fade.end) {
+    //       fadeStart = now - (relPos - fade.start);
+    //       fadeDuration = fade.end - fade.start;
+    //     }
 
-        switch (fade.type) {
-          case FADEIN:
-            // Skip fade-in here since it's already handled above
-            break;
-          case FADEOUT:
-            playoutSystem.applyFadeOut(fadeStart, fadeDuration, fade.shape);
-            break;
-          default:
-            throw new Error("Invalid fade type saved on track.");
+    //     switch (fade.type) {
+    //       case FADEIN:
+    //         // Skip fade-in here since it's already handled above
+    //         break;
+    //       case FADEOUT:
+    //         playoutSystem.applyFadeOut(fadeStart, fadeDuration, fade.shape);
+    //         break;
+    //       default:
+    //         throw new Error("Invalid fade type saved on track.");
+    //     }
+    //   }
+    // });
+
+    if (this.fadeOut && Array.isArray(this.fadeOut) && this.fadeOut.length > 0) {
+      const theArray = this.fadeOut
+        .map(fadeId => ({ id: fadeId, ...this.fades[fadeId] }))
+        .sort((a, b) => a.start - b.start)
+        .map(e => e.id);
+
+      console.log(theArray, 'fade-out array');
+
+      theArray.forEach((fadeId, index) => {
+        const fade = this.fades[fadeId];
+
+        if (!fade) return;
+
+        const prevFadeId = theArray[index - 1];
+        const prevFade = prevFadeId ? this.fades[prevFadeId] : null;
+
+        let fadeStart;
+        let fadeDuration;
+
+        if (relPos < fade.end) {
+          if (relPos <= fade.start) {
+            fadeStart = now + (fade.start - relPos);
+            fadeDuration = fade.end - fade.start;
+          } else if (relPos > fade.start && relPos < fade.end) {
+            fadeStart = now - (relPos - fade.start);
+            fadeDuration = fade.end - fade.start;
+          }
+
+          if (prevFade && fade.start < prevFade.end) {
+            console.log('Fade-out overlapped');
+            fadeStart = now - (relPos - prevFade.end);
+          }
+
+          console.log(fadeStart, 'fade-out start');
+          console.log(fadeDuration, 'fade-out duration');
+
+          playoutSystem.applyFadeOut(fadeStart, fadeDuration, fade.shape, fade.drawStart, fade.drawEnd);
         }
-      }
-    });
+      });
+    }
 
     playoutSystem.setVolumeGainLevel(this.gain);
     playoutSystem.setShouldPlay(options.shouldPlay);
@@ -686,12 +730,19 @@ export default class {
           },
           onclick: (event) => {
             event.stopPropagation(); // ✅ Prevents event from interfering with other handlers
-            // console.log(`Removing fade-in: ${fadeId}`);
 
-            // ✅ Remove fade
             if (this.fades[fadeId]) {
               delete this.fades[fadeId];
-              this.fadeIn = this.fadeIn.filter(id => id !== fadeId);
+
+              // ✅ Remove from fadeIn if it exists there
+              if (this.fadeIn && Array.isArray(this.fadeIn)) {
+                this.fadeIn = this.fadeIn.filter(id => id !== fadeId);
+              }
+
+              // ✅ Remove from fadeOut if it exists there
+              if (this.fadeOut && Array.isArray(this.fadeOut)) {
+                this.fadeOut = this.fadeOut.filter(id => id !== fadeId);
+              }
 
               this.ee.emit("redraw");
             }
@@ -699,6 +750,7 @@ export default class {
         },
         "✖"
       );
+
 
 
     const channels = Object.keys(this.peaks.data).map((channelNum) => {
@@ -793,39 +845,52 @@ export default class {
         });
       }
 
-      // === ✅ Fade-out logic remains unchanged ===
-      if (this.fadeOut) {
-        const fadeOut = this.fades[this.fadeOut];
-        const fadeWidth = secondsToPixels(
-          fadeOut.end - fadeOut.start,
-          data.resolution,
-          data.sampleRate
-        );
+      if (this.fadeOut && Array.isArray(this.fadeOut) && this.fadeOut.length > 0) {
+        this.fadeOut.forEach((fadeId) => {
+          const fadeOut = this.fades[fadeId];
+          if (!fadeOut) return;
 
-        channelChildren.push(
-          h(
-            "div.wp-fade.wp-fadeout",
-            {
-              attributes: {
-                style: `position: absolute; height: ${data.height}px; width: ${fadeWidth}px; top: 0; right: 0; z-index: 4;`,
-              },
-            },
-            [
-              h("canvas", {
+          const fadeWidth = secondsToPixels(
+            fadeOut.end - fadeOut.start,
+            data.resolution,
+            data.sampleRate
+          );
+
+          const startingPoint = secondsToPixels(
+            fadeOut.start,
+            data.resolution,
+            data.sampleRate
+          );
+
+          channelChildren.push(
+            h(
+              "div.wp-fade.wp-fadeout",
+              {
                 attributes: {
-                  width: fadeWidth,
-                  height: data.height,
+                  style: `position: absolute; height: ${data.height}px; width: ${fadeWidth}px; top: 0; left: ${startingPoint}px; z-index: 4;`,
                 },
-                hook: new FadeCanvasHook(
-                  fadeOut.type,
-                  fadeOut.shape,
-                  fadeOut.end - fadeOut.start,
-                  data.resolution
-                ),
-              }),
-            ]
-          )
-        );
+              },
+              [
+                h("canvas", {
+                  attributes: {
+                    width: fadeWidth,
+                    height: data.height,
+                  },
+                  hook: new FadeCanvasHook(
+                    fadeOut.type,
+                    fadeOut.shape,
+                    fadeOut.end - fadeOut.start,
+                    data.resolution,
+                    fadeOut.drawStart,
+                    fadeOut.drawEnd
+                  ),
+                }),
+
+                closeButton(fadeId), // ✅ Close button per fade
+              ]
+            )
+          );
+        });
       }
 
       return h(

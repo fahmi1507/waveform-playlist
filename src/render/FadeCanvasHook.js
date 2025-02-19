@@ -45,7 +45,7 @@ class FadeCanvasHook {
         break;
       }
       case LINEAR: {
-        curve = linear(width, reflection);
+        curve = linear(width, 1);
         break;
       }
       case EXPONENTIAL: {
